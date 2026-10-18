@@ -1,3 +1,4 @@
+import { confirmedRestDates } from "./load-visibility";
 import type {
   AthleteState,
   Prescription,
@@ -394,7 +395,8 @@ export function programDoseSeries(
 ) {
   const sessions = catalog.sessions.filter((s) => s.programId === programId),
     weeks = programId === "lp" ? 12 : 8;
-  const run = state.enrollments.find((e) => e.id === enrollmentId),
+  const rest = confirmedRestDates(state),
+    run = state.enrollments.find((e) => e.id === enrollmentId),
     schedule = run ? scheduledSessions(run, catalog) : [];
   return Array.from({ length: weeks }, (_, i) => {
     const weekSessions = sessions.filter(
@@ -427,16 +429,18 @@ export function programDoseSeries(
       .filter(
         (p) => !movementId || (movementFor(p)?.id ?? p.name) === movementId,
       );
-    const filtered = own.map((w) => ({
-      ...w,
-      rows: w.rows.filter(
-        (r) =>
-          !movementId ||
-          (r.movementId ??
-            movementFor({ movementId: null, name: r.name })?.id ??
-            r.name) === movementId,
-      ),
-    }));
+    const filtered = own
+      .filter((w) => !rest.has(w.localDate))
+      .map((w) => ({
+        ...w,
+        rows: w.rows.filter(
+          (r) =>
+            !movementId ||
+            (r.movementId ??
+              movementFor({ movementId: null, name: r.name })?.id ??
+              r.name) === movementId,
+        ),
+      }));
     return {
       week: i + 1,
       phaseId: weekSessions[0]?.phaseId ?? "",
