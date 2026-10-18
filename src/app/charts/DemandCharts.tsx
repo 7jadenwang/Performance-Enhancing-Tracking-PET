@@ -1,5 +1,10 @@
 import type { AthleteState } from "../../domain/schema";
 import { demandAxes, demandChartTimeline } from "../../metrics/training-demand";
+import {
+  confirmedRestDates,
+  trainingLoadState,
+  withoutRestDates,
+} from "../../metrics/load-visibility";
 import { addDays } from "../../program/schedule";
 import type { Period } from "../../metrics/periods";
 import TimeSeries from "./TimeSeries";
@@ -19,8 +24,16 @@ export default function DemandCharts({
   end: string;
   period: Period;
 }) {
-  const history = demandChartTimeline(state, addDays(start, -6), end),
-    days = history.filter((p) => p.date >= start);
+  const rest = confirmedRestDates(state),
+    history = demandChartTimeline(
+      trainingLoadState(state),
+      addDays(start, -6),
+      end,
+    ),
+    days = withoutRestDates(
+      history.filter((p) => p.date >= start),
+      state,
+    );
   return (
     <section className="demand-panel">
       <div className="sectionhead">
@@ -38,7 +51,7 @@ export default function DemandCharts({
           unit="exposure AU"
           period={period}
           aggregation="sum"
-          caption="Days without recorded training are shown as zero and connected. Recorded sessions, unfinished logs and annotated training days with missing load measurements remain gaps."
+          caption="Confirmed rest days are hidden. Days without recorded training are shown as zero and connected. Recorded sessions, unfinished logs and annotated training days with missing load measurements remain gaps."
           points={days.flatMap((p) =>
             demandAxes.map((axis) => ({
               label: p.date,
@@ -57,7 +70,7 @@ export default function DemandCharts({
           unit="exposure AU"
           period={period}
           points={history.flatMap((p, i) => {
-            if (p.date < start) return [];
+            if (p.date < start || rest.has(p.date)) return [];
             const window = history.slice(Math.max(0, i - 6), i + 1);
             return demandAxes.map((axis) => {
               const known = window.filter((d) => d[axis] !== null),
@@ -108,13 +121,15 @@ export default function DemandCharts({
           as measured.
         </p>
         <p>
-          Days with no training log or training annotation are displayed as zero
-          and connected, including unlogged days. This is a chart assumption; it
-          does not mark the day as confirmed rest or change saved records.
-          Unclassified work and recorded sessions with missing RPE/duration
-          remain unknown. Weekly/monthly load shows recorded totals plus
-          displayed zeroes; recovery shows means. Point details distinguish
-          confirmed records from assumed zeroes.
+          Confirmed rest days are excluded from load plots and totals; morning
+          monitoring keeps those dates. Seven-day windows still use calendar
+          days, including rest days with zero load. Days with no training log or
+          training annotation are displayed as zero and connected, including
+          unlogged days. This is a chart assumption; it does not mark the day as
+          confirmed rest or change saved records. Unclassified work and recorded
+          sessions with missing RPE/duration remain unknown. Weekly/monthly load
+          shows recorded totals plus displayed zeroes; recovery shows means.
+          Point details distinguish confirmed records from assumed zeroes.
         </p>
         <p>
           Technique/skill practice:{" "}
