@@ -898,3 +898,37 @@ button:active:not(:disabled) {
     scroll-behavior: auto !important;
   }
 }
+
+.chart svg {
+  cursor: crosshair;
+}
+.chart svg [role="button"] {
+  cursor: pointer;
+}
+.chart svg [role="button"]:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.chart-selection-line {
+  stroke: #b7c2df;
+  stroke-dasharray: 3 4;
+  pointer-events: none;
+}
+.chart-selection {
+  border-left: 2px solid #b7c2df;
+  padding: 10px 12px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.chart-selection ul {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+.chart-selection li {
+  margin: 8px 0;
+}
+.chart-selection small {
+  display: block;
+  color: #b7c2df;
+}

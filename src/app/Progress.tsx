@@ -359,48 +359,51 @@ export default function Progress({
                 </tr>
               </thead>
               <tbody>
-                {dose.map((w) => (
-                  <tr key={w.week}>
-                    <td>W{w.week}</td>
-                    <td>{w.phaseId}</td>
-                    <td>
-                      {w.planned.count} prescription blocks ·{" "}
-                      {w.planned.unknown} incomplete/conditional fields
-                    </td>
-                    <td>
-                      {w.planned.tempoInstructions.join("; ")}
-                      <details>
-                        <summary>See original dose requirements</summary>
-                        {program.sessions
-                          .filter((s) => w.sessions.includes(s.id))
-                          .flatMap((s) =>
-                            s.exercises.filter(
-                              (p) =>
-                                !movement ||
-                                (movementFor(p)?.id ?? p.name) === movement,
-                            ),
-                          )
-                          .map((p) => (
-                            <p key={p.id}>
-                              {p.sourceText}
-                              {p.velocityVariants.length > 0 && (
-                                <span>
-                                  {" "}
-                                  ·{" "}
-                                  {p.velocityVariants
-                                    .map(
-                                      (v) =>
-                                        `${v.loadPercent[0]}%: ${v.target.join("–")} ${v.metric} m/s, floor ${v.floor}`,
-                                    )
-                                    .join("; ")}
-                                </span>
-                              )}
-                            </p>
-                          ))}
-                      </details>
-                    </td>
-                  </tr>
-                ))}
+                {dose
+                  .slice()
+                  .reverse()
+                  .map((w) => (
+                    <tr key={w.week}>
+                      <td>W{w.week}</td>
+                      <td>{w.phaseId}</td>
+                      <td>
+                        {w.planned.count} prescription blocks ·{" "}
+                        {w.planned.unknown} incomplete/conditional fields
+                      </td>
+                      <td>
+                        {w.planned.tempoInstructions.join("; ")}
+                        <details>
+                          <summary>See original dose requirements</summary>
+                          {program.sessions
+                            .filter((s) => w.sessions.includes(s.id))
+                            .flatMap((s) =>
+                              s.exercises.filter(
+                                (p) =>
+                                  !movement ||
+                                  (movementFor(p)?.id ?? p.name) === movement,
+                              ),
+                            )
+                            .map((p) => (
+                              <p key={p.id}>
+                                {p.sourceText}
+                                {p.velocityVariants.length > 0 && (
+                                  <span>
+                                    {" "}
+                                    ·{" "}
+                                    {p.velocityVariants
+                                      .map(
+                                        (v) =>
+                                          `${v.loadPercent[0]}%: ${v.target.join("–")} ${v.metric} m/s, floor ${v.floor}`,
+                                      )
+                                      .join("; ")}
+                                  </span>
+                                )}
+                              </p>
+                            ))}
+                        </details>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
