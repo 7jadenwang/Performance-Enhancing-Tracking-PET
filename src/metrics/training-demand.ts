@@ -186,3 +186,66 @@ export function demandTimeline(
   }
   return points;
 }
+
+// Display-only zero filling: never persist inferred rest or modify recorded work.
+export function demandChartTimeline(
+  state: AthleteState,
+  start: string,
+  end: string,
+) {
+  const recordedDates = new Set(
+    state.workouts
+      .filter((w) => w.status !== "skipped")
+      .map((w) => w.localDate),
+  );
+  for (const activity of state.activities)
+    if (activity.status === "training") recordedDates.add(activity.localDate);
+  return demandTimeline(state, start, end).map((p) => {
+    const missing = new Set<string>();
+    const logs = state.workouts.filter(
+      (w) => w.localDate === p.date && w.status !== "skipped",
+    );
+    const conflictingRest =
+      state.activities.some(
+        (a) => a.localDate === p.date && a.status === "rest",
+      ) &&
+      logs.some(
+        (w) =>
+          w.status === "draft" &&
+          (w.rows.some((r) => r.confirmed) ||
+            (w.actualDuration ?? 0) > 0 ||
+            (w.actualRpe ?? 0) > 0),
+      );
+    const point = conflictingRest
+      ? { ...p, total: null, force: null, power: null, metabolic: null }
+      : p;
+    if (conflictingRest)
+      missing.add("Rest annotation conflicts with recorded draft training");
+    const assumedZero = point.total === null && !recordedDates.has(p.date);
+    for (const w of logs) {
+      if (w.status === "draft")
+        missing.add(
+          "Session is still draft; choose partial/completed after training",
+        );
+      if (w.actualDuration === null) missing.add("Actual duration is missing");
+      if (w.actualRpe === null) missing.add("Whole-session RPE is missing");
+      if (!w.rows.some((r) => r.confirmed))
+        missing.add("No completed sets confirmed");
+      if (w.rows.some((r) => r.confirmed && r.kind === "other"))
+        missing.add("Confirmed work needs a classified work type");
+    }
+    if (!logs.length && recordedDates.has(p.date))
+      missing.add("Training day has no saved session");
+    return assumedZero
+      ? {
+          ...point,
+          total: 0,
+          force: 0,
+          power: 0,
+          metabolic: 0,
+          assumedZero: true,
+          missingInputs: [] as string[],
+        }
+      : { ...point, assumedZero: false, missingInputs: [...missing] };
+  });
+}

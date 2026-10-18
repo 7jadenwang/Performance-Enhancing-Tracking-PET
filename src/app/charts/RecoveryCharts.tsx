@@ -1,3 +1,7 @@
+import {
+  trainingLoadState,
+  withoutRestDates,
+} from "../../metrics/load-visibility";
 import { ratingOnTen } from "../../metrics/recovery-ratings";
 import type { Period } from "../../metrics/periods";
 import type { AthleteState } from "../../domain/schema";
@@ -17,6 +21,8 @@ export default function RecoveryCharts({
   period?: Period;
 }) {
   const timeline = buildTimeline(state, { start, end }),
+    loadTimeline = buildTimeline(trainingLoadState(state), { start, end }),
+    loadDays = withoutRestDates(loadTimeline, state),
     mornings = timeline.flatMap((p) => p.mornings),
     protocols = [...new Set(mornings.map((m) => m.protocolId))];
   const sleep = timeline.map((p) => ({
@@ -98,7 +104,7 @@ export default function RecoveryCharts({
           aggregation="sum"
           title="Planned versus actual session load"
           unit="AU"
-          points={timeline.flatMap((p) => [
+          points={loadDays.flatMap((p) => [
             { label: p.date, value: p.plannedAu, series: "Planned" },
             {
               label: p.date,
@@ -113,16 +119,20 @@ export default function RecoveryCharts({
           title="Recorded load trends"
           unit="AU/day"
           points={[
-            ...rollingLoad(timeline, 7).map((p) => ({
-              label: p.date,
-              value: p.meanAu,
-              series: "7-day mean",
-            })),
-            ...rollingLoad(timeline, 28).map((p) => ({
-              label: p.date,
-              value: p.meanAu,
-              series: "28-day mean",
-            })),
+            ...withoutRestDates(rollingLoad(loadTimeline, 7), state).map(
+              (p) => ({
+                label: p.date,
+                value: p.meanAu,
+                series: "7-day mean",
+              }),
+            ),
+            ...withoutRestDates(rollingLoad(loadTimeline, 28), state).map(
+              (p) => ({
+                label: p.date,
+                value: p.meanAu,
+                series: "28-day mean",
+              }),
+            ),
           ]}
         />
         <TimeSeries

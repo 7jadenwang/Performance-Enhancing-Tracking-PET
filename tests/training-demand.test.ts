@@ -1,7 +1,11 @@
 import { expect, it } from "vitest";
 import { initialState } from "../src/domain/schema";
 import { createRow, createWorkout } from "../src/domain/records";
-import { trainingDemand, demandTimeline } from "../src/metrics/training-demand";
+import {
+  trainingDemand,
+  demandTimeline,
+  demandChartTimeline,
+} from "../src/metrics/training-demand";
 it("keeps mixed-session demand on shared axes while distinguishing emphasis", () => {
   const w = (kind: "strength" | "jump" | "conditioning") =>
     createWorkout({
@@ -89,4 +93,76 @@ it("keeps explicitly zero-load completed sessions at zero without inventing miss
   expect(
     trainingDemand({ ...w, actualRpe: null }, initialState()).force,
   ).toBeNull();
+});
+
+it("fills empty demand-chart days with zero without changing records or treating incomplete training as rest", async () => {
+  const { demandChartTimeline } =
+    await import("../src/metrics/training-demand");
+  const state = initialState();
+  state.workouts = [
+    createWorkout({
+      localDate: "2026-10-12",
+      status: "completed",
+      actualDuration: 60,
+      actualRpe: 6,
+      rows: [createRow({ confirmed: true, kind: "strength" })],
+    }),
+    createWorkout({
+      id: "incomplete",
+      localDate: "2026-10-15",
+      status: "partial",
+      actualDuration: null,
+      actualRpe: 6,
+      rows: [createRow({ confirmed: true })],
+    }),
+  ];
+  const before = JSON.stringify(state);
+  const days = demandChartTimeline(state, "2026-10-12", "2026-10-16");
+  expect(days[0].force).toBeGreaterThan(0);
+  expect(days[1]).toMatchObject({
+    date: "2026-10-13",
+    force: 0,
+    power: 0,
+    metabolic: 0,
+    assumedZero: true,
+  });
+  expect(days[2]).toMatchObject({ force: 0, assumedZero: true });
+  expect(days[3]).toMatchObject({ force: null, assumedZero: false });
+  expect(days[4]).toMatchObject({ force: 0, assumedZero: true });
+  expect(JSON.stringify(state)).toBe(before);
+  expect(demandTimeline(state, "2026-10-13", "2026-10-13")[0].force).toBeNull();
+});
+
+it("never zero-fills unfinished training logs or explicitly annotated training days", () => {
+  const s = initialState();
+  s.workouts = [
+    createWorkout({
+      localDate: "2026-10-13",
+      status: "draft",
+      rows: [createRow({ confirmed: true, reps: 5 })],
+    }),
+  ];
+  s.activities = [{ localDate: "2026-10-14", status: "training", notes: "" }];
+  const points = demandChartTimeline(s, "2026-10-13", "2026-10-15");
+  expect(points[0]).toMatchObject({ force: null, assumedZero: false });
+  expect(points[0].missingInputs).toContain("Actual duration is missing");
+  expect(points[0].missingInputs).toContain("Whole-session RPE is missing");
+  expect(points[1]).toMatchObject({ force: null, assumedZero: false });
+  expect(points[2]).toMatchObject({ force: 0, assumedZero: true });
+});
+
+it("does not hide confirmed draft training behind an older rest annotation", () => {
+  const s = initialState();
+  s.workouts = [
+    createWorkout({
+      localDate: "2026-10-13",
+      status: "draft",
+      rows: [createRow({ confirmed: true, reps: 5 })],
+    }),
+  ];
+  s.activities = [{ localDate: "2026-10-13", status: "rest", notes: "" }];
+  expect(demandChartTimeline(s, "2026-10-13", "2026-10-13")[0]).toMatchObject({
+    force: null,
+    assumedZero: false,
+  });
 });

@@ -20,6 +20,7 @@ export default function TimeSeries({
   yAxis = "zero",
   minimumSpan = 1,
   yRange,
+  caption,
 }: {
   title: string;
   unit: string;
@@ -30,6 +31,7 @@ export default function TimeSeries({
   yAxis?: "zero" | "data";
   minimumSpan?: number;
   yRange?: [number, number];
+  caption?: string;
 }) {
   const points = aggregatePoints(rawPoints, period, aggregation);
   const [hover, setHover] = useState<ChartPoint | null>(null),
@@ -178,7 +180,8 @@ export default function TimeSeries({
         {hover
           ? `${hover.label} · ${hover.series}: ${hover.low !== undefined && hover.high !== undefined ? `${hover.low.toFixed(2)}–${hover.high.toFixed(2)}` : hover.value?.toFixed(2)} ${unit}${hover.note ? " · " + hover.note : ""}`
           : valid.length
-            ? "Ranges retain their bounds. Missing values create gaps. Focus a point for details."
+            ? (caption ??
+              "Ranges retain their bounds. Missing values create gaps. Focus a point for details.")
             : "No measured values in this range."}
       </p>
       <button

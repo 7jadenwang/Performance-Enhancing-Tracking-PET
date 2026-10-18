@@ -11,6 +11,7 @@ import {
   type DoseProfile,
   type ExposureDimension,
 } from "../metrics/exposure";
+import { trainingLoadState } from "../metrics/load-visibility";
 import { sessionLoad } from "../metrics/load";
 import { addDays } from "../program/schedule";
 import { movementFor } from "../program/movements";
@@ -79,7 +80,7 @@ export default function Progress({
         ),
     ),
   ];
-  const logged = state.workouts.filter(
+  const logged = trainingLoadState(state).workouts.filter(
       (w) => w.localDate >= start && w.localDate <= today,
     ),
     measured = logged.filter(
@@ -160,9 +161,10 @@ export default function Progress({
             />
           </div>
           <p className="hint">
-            Confirmed rest is zero load. Missing records remain unknown.
-            Existing completed workouts are preserved; conflicting training must
-            be reviewed in the log.
+            Confirmed rest days are hidden from load charts and totals; their
+            morning measurements stay visible. Missing training measurements
+            remain unknown. Existing completed workouts are preserved;
+            conflicting training must be reviewed in the log.
           </p>
         </details>
       )}
@@ -252,6 +254,30 @@ export default function Progress({
           not universal stress. Conditional choices and unmapped work are
           disclosed below. Compare individual movements to interpret velocity.
         </p>
+        <details className="metric-details">
+          <summary>Why do these lines have gaps?</summary>
+          <p>
+            Lines stop at program phase boundaries:{" "}
+            {dose
+              .flatMap((w, i) =>
+                i > 0 && w.phaseId !== dose[i - 1].phaseId
+                  ? [`W${dose[i - 1].week}–W${w.week}`]
+                  : [],
+              )
+              .join(", ")}
+            . Each phase is drawn separately, even when both weeks have values.
+          </p>
+          <p>
+            Other gaps mean that this metric has no usable value for that week.
+            Actual dose needs completed or partial sessions with confirmed work.
+            Planned metrics can be absent or conditional; external weight volume
+            needs a usable load or matching 1RM, and velocity needs comparable
+            movement and measurement definitions. Some prescribed metrics, such
+            as intra-cluster rest, have no matching actual-dose measurement.
+            Unknown values are left blank rather than shown as zero. Confirmed
+            rest dates are excluded from actual dose; saved records stay intact.
+          </p>
+        </details>
         {dose.every((w) => w.actual === null) && (
           <p>No actual sessions logged</p>
         )}
@@ -294,7 +320,7 @@ export default function Progress({
                     high: planned?.[1],
                     series: "Planned",
                     segment: w.phaseId,
-                    note: `${w.planned.unknown} incomplete/conditional fields`,
+                    note: `${w.phaseId} · ${w.planned.unknown} incomplete/conditional fields${planned ? "" : " · no usable prescription for this metric"}`,
                   },
                   {
                     label: `W${w.week}`,
@@ -313,7 +339,7 @@ export default function Progress({
                             ? `${c.measured}/${c.expected} measured rows${c.measured < c.expected ? " · partial known total" : ""}`
                             : `${w.actual.unknown} incomplete fields`;
                         })()
-                      : "",
+                      : `${w.phaseId} · no completed/partial session with confirmed work`,
                   },
                 ];
               })}
