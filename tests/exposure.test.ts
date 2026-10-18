@@ -185,3 +185,23 @@ it("keeps entirely missing actual dimensions null and labels partial known total
   expect(partial.strengthReps).toBe(5);
   expect(partial.coverage.strengthReps).toEqual({ measured: 1, expected: 2 });
 });
+it("hides confirmed rest actual dose without changing prescriptions or saved workouts", () => {
+  const s = initialState();
+  const session = program.sessions.find((x) => x.programId === "lp")!;
+  s.workouts = [
+    createWorkout({
+      sessionId: session.id,
+      localDate: "2026-10-13",
+      status: "completed",
+      rows: [createRow({ kind: "strength", reps: 5, confirmed: true })],
+    }),
+  ];
+  const before = programDoseSeries("lp", s, program);
+  s.activities = [{ localDate: "2026-10-13", status: "rest", notes: "" }];
+  const saved = JSON.stringify(s);
+  const after = programDoseSeries("lp", s, program);
+  expect(before[0].actual?.strengthReps).toBe(5);
+  expect(after[0].actual).toBeNull();
+  expect(after.map((w) => w.planned)).toEqual(before.map((w) => w.planned));
+  expect(JSON.stringify(s)).toBe(saved);
+});
