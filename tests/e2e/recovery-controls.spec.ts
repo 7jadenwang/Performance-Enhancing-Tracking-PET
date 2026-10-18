@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-test("saves half-point recovery ratings, records rest as zero, and zooms measured axes", async ({
+test("saves half-point recovery ratings, hides confirmed rest only from load charts, and zooms measured axes", async ({
   page,
 }) => {
   await page.goto("/");
@@ -42,16 +42,48 @@ test("saves half-point recovery ratings, records rest as zero, and zooms measure
     .click();
   await page.getByLabel("Activity date", { exact: true }).fill("2026-10-13");
   await page.getByLabel("Daily activity annotation").selectOption("rest");
+  for (const title of [
+    "Session demand trends",
+    "Seven-day accumulated demand",
+    "Planned versus actual session load",
+    "Recorded load trends",
+  ]) {
+    await page
+      .getByRole("button", { name: `${title} data`, exact: true })
+      .click();
+    await expect(
+      page
+        .getByRole("table", { name: `${title} data` })
+        .locator("tbody tr")
+        .filter({ hasText: "2026-10-13" }),
+    ).toHaveCount(0);
+  }
+  for (const title of [
+    "CMJ height",
+    "Body mass",
+    "Sleep quality",
+    "Perceived fatigue",
+    "Soreness and stress",
+  ]) {
+    await page
+      .getByRole("button", { name: `${title} data`, exact: true })
+      .click();
+    const rows = page
+      .getByRole("table", { name: `${title} data` })
+      .locator("tbody tr")
+      .filter({ hasText: "2026-10-13" });
+    expect(await rows.count()).toBeGreaterThan(0);
+    await expect(rows.first().locator("td").nth(2)).not.toHaveText("Unknown");
+  }
   await page
-    .getByRole("button", { name: "Session demand trends data", exact: true })
+    .getByText("Detailed program exposure and prescriptions", { exact: true })
     .click();
-  const restRows = page
-    .getByRole("table", { name: "Session demand trends data" })
-    .locator("tbody tr")
-    .filter({ hasText: "2026-10-13" });
-  await expect(restRows).toHaveCount(3);
-  for (const row of await restRows.all())
-    await expect(row.locator("td").nth(2)).toHaveText("0.00");
+  await page
+    .getByText("Why do these lines have gaps?", { exact: true })
+    .click();
+  await expect(
+    page.getByText(/Lines stop at program phase boundaries:/),
+  ).toContainText("W4–W5, W8–W9");
   for (const title of ["CMJ height", "Body mass"]) {
     const chart = page
       .locator("section.chart")
@@ -161,13 +193,11 @@ test("shows missing-input reasons rather than zero for a recorded training day",
   ];
   await page.goto("/");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page
-    .getByLabel("Import backup")
-    .setInputFiles({
-      name: "training.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(state)),
-    });
+  await page.getByLabel("Import backup").setInputFiles({
+    name: "training.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(state)),
+  });
   await expect(
     page.getByText("Compatible backup:", { exact: false }),
   ).toBeVisible();
