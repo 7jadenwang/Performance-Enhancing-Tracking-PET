@@ -397,6 +397,14 @@ export default function WorkoutLog({
                 </span>
               </button>
               <div id={"movement-" + group.key} hidden={!isOpen}>
+                <button
+                  type="button"
+                  className="add-next-set"
+                  onClick={() => add(group.prescription, group.key)}
+                >
+                  {group.rows.length ? "Add next set" : "Start movement"} ·{" "}
+                  {group.name}
+                </button>
                 {group.prescription && (
                   <p className="movement-target">
                     {group.prescription.sourceText}
@@ -859,14 +867,6 @@ export default function WorkoutLog({
                     </label>
                   </Card>
                 ))}
-                <button
-                  type="button"
-                  className="add-next-set"
-                  onClick={() => add(group.prescription, group.key)}
-                >
-                  {group.rows.length ? "Add next set" : "Start movement"} ·{" "}
-                  {group.name}
-                </button>
               </div>
             </section>
           );
