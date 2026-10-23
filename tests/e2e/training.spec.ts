@@ -216,8 +216,9 @@ test("autosaves immediately across refresh and adds sets only within their movem
   await expect(first.locator(".setcard")).toHaveCount(1);
   await first.getByLabel("Completed set").check();
   await first.getByRole("button", { name: /Add next set/ }).click();
-  await expect(first.locator(".setcard")).toHaveCount(2);
-  await expect(first.getByLabel("Completed set").nth(1)).not.toBeChecked();
+  await expect(first.locator(".setcard")).toHaveCount(1);
+  await expect(first.getByRole("heading", { name: /Set 2$/ })).toBeVisible();
+  await expect(first.getByLabel("Completed set")).not.toBeChecked();
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await page.getByLabel("Time step").selectOption("week");
   await expect(
@@ -325,7 +326,22 @@ test("keeps all existing saved fields unchanged when viewing the new progress an
   await page.getByLabel("Time step").selectOption("week");
   await page.getByLabel("Time step").selectOption("month");
   await page.getByRole("button", { name: "Open saved workout" }).click();
-  await expect(page.locator(".setcard")).toHaveCount(20);
+  await expect(page.locator(".setcard")).toHaveCount(1);
+  const historical = page
+    .locator(".movement-group")
+    .filter({ has: page.locator(".setcard") });
+  await historical.locator(".movement-toggle").click();
+  for (let i = 1; i <= 20; i++) {
+    await historical
+      .getByRole("button", { name: `Set ${i}, completed`, exact: true })
+      .click();
+    await expect(historical.getByLabel("External load (kg)")).toHaveValue(
+      String(49 + i),
+    );
+    await expect(
+      historical.getByLabel("Set notes", { exact: true }),
+    ).toHaveValue("Original set " + (i - 1));
+  }
   await page.clock.fastForward(2000);
   expect(await stored()).toBe(before);
   await page.getByRole("button", { name: "Progress", exact: true }).click();
@@ -346,5 +362,77 @@ test("keeps added custom sets together even before the first set is confirmed", 
     .click();
   const custom = page.locator(".movement-group").last();
   await custom.getByRole("button", { name: /Add next set/ }).click();
-  await expect(custom.locator(".setcard")).toHaveCount(2);
+  await expect(custom.locator(".setcard")).toHaveCount(1);
+  await expect(custom.getByRole("heading", { name: /Set 2$/ })).toBeVisible();
+  await custom
+    .getByRole("button", { name: "Previous set", exact: true })
+    .click();
+  await expect(custom.getByRole("heading", { name: /Set 1$/ })).toBeVisible();
+});
+
+test("flips one set at a time, edits previous sets, and preserves values on reload and removal", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Program", exact: true }).click();
+  await page
+    .getByRole("button", { name: "LP · Phase 1 · W1 D1 · Monday", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Log this session" }).click();
+  const group = page.locator(".movement-group").first();
+  await group.getByLabel("External load (kg)").fill("75");
+  await group.getByLabel("Set notes", { exact: true }).fill("first original");
+  await group.getByLabel("Completed set").check();
+  await group.getByRole("button", { name: /Add next set/ }).click();
+  await expect(group.locator(".setcard")).toHaveCount(1);
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("75");
+  await group.getByLabel("External load (kg)").fill("80");
+  await group.getByLabel("Set notes", { exact: true }).fill("second original");
+  await group
+    .getByRole("button", { name: "Previous set", exact: true })
+    .click();
+  await expect(group.getByLabel("Set notes", { exact: true })).toHaveValue(
+    "first original",
+  );
+  await expect(
+    group.getByRole("button", { name: "Previous set", exact: true }),
+  ).toBeDisabled();
+  await group.getByLabel("External load (kg)").fill("77.5");
+  await group.getByRole("button", { name: "Next set", exact: true }).click();
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("80");
+  await expect(
+    group.getByRole("button", { name: "Next set", exact: true }),
+  ).toBeDisabled();
+  await group.getByRole("button", { name: /Add next set/ }).click();
+  await expect(group.getByRole("heading", { name: /Set 3$/ })).toBeVisible();
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("77.5");
+  await group
+    .getByRole("button", { name: "Set 1, completed", exact: true })
+    .click();
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("77.5");
+  await group.locator(".movement-toggle").click();
+  await group.locator(".movement-toggle").click();
+  await expect(group.getByRole("heading", { name: /Set 1$/ })).toBeVisible();
+  await page.reload();
+  await group
+    .getByRole("button", { name: "Set 2, unfinished", exact: true })
+    .click();
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("80");
+  await expect(group.getByLabel("Set notes", { exact: true })).toHaveValue(
+    "second original",
+  );
+  await group
+    .getByRole("button", { name: "Set 3, unfinished", exact: true })
+    .click();
+  page.once("dialog", (d) => d.accept());
+  await group.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(group.getByRole("heading", { name: /Set 2$/ })).toBeVisible();
+  await expect(group.locator(".setcard")).toHaveCount(1);
+  await expect(
+    group.getByRole("button", { name: "Set 3, unfinished", exact: true }),
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });

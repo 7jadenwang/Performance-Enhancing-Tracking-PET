@@ -89,6 +89,10 @@ export default function WorkoutLog({
   useEffect(() => {
     setExpanded(ongoing ? [ongoing] : []);
   }, [ongoing]);
+  const [selectedSets, setSelectedSets] = useState<Record<string, string>>({});
+  function selectSet(key: string, id: string) {
+    setSelectedSets((current) => ({ ...current, [key]: id }));
+  }
   function updateRow(id: string, v: Partial<ActualRow>) {
     update((current) => ({
       ...current,
@@ -126,7 +130,9 @@ export default function WorkoutLog({
           });
     if (p && !row.prescriptionId) row.prescriptionId = p.id;
     update({ rows: [...w.rows, row] });
-    setExpanded([p?.id ?? movementKey(row)]);
+    const groupKey = key ?? p?.id ?? movementKey(row);
+    selectSet(groupKey, row.id);
+    setExpanded([groupKey]);
   }
   function copy() {
     update({ rows: startMovements(w.rows, prescriptions) });
@@ -325,7 +331,8 @@ export default function WorkoutLog({
           </div>
           <p className="hint">
             One set to start each movement. Add the next set when ready; it
-            copies inputs from your first completed set. Confirm sets and choose
+            copies inputs from your first completed set. Use the set buttons or
+            Previous/Next to edit one set at a time. Confirm sets and choose
             partial/completed status to count them.
           </p>
           <p role="status" className="autosave-status">
@@ -349,6 +356,14 @@ export default function WorkoutLog({
               : target.join("–")
             : "open";
           const isOpen = expanded.includes(group.key);
+          const selected =
+            group.rows.find((r) => r.id === selectedSets[group.key]) ??
+            group.rows.find((r) => !r.confirmed) ??
+            group.rows.at(-1);
+          const visibleRows = selected ? [selected] : [];
+          const selectedIndex = group.rows.findIndex(
+            (r) => r.id === selected?.id,
+          );
           return (
             <section key={group.key} className="movement-group">
               <button
@@ -387,20 +402,70 @@ export default function WorkoutLog({
                     {group.prescription.sourceText}
                   </p>
                 )}
-                {group.rows.map((r, i) => (
+                {group.rows.length > 0 && (
+                  <nav
+                    className="set-navigation"
+                    aria-label={`Sets for ${group.name}`}
+                  >
+                    <div className="set-buttons" aria-label="Choose a set">
+                      {group.rows.map((row, index) => (
+                        <button
+                          key={row.id}
+                          type="button"
+                          aria-pressed={row.id === selected?.id}
+                          aria-label={`Set ${index + 1}, ${row.confirmed ? "completed" : "unfinished"}`}
+                          onClick={() => selectSet(group.key, row.id)}
+                        >
+                          Set {index + 1}
+                          {row.confirmed ? " ✓" : ""}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="set-pager">
+                      <button
+                        type="button"
+                        disabled={selectedIndex <= 0}
+                        onClick={() =>
+                          selectSet(group.key, group.rows[selectedIndex - 1].id)
+                        }
+                      >
+                        Previous set
+                      </button>
+                      <span aria-live="polite">
+                        Set {selectedIndex + 1} of {group.rows.length}
+                        {target && <small>Target {targetLabel} sets</small>}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={selectedIndex >= group.rows.length - 1}
+                        onClick={() =>
+                          selectSet(group.key, group.rows[selectedIndex + 1].id)
+                        }
+                      >
+                        Next set
+                      </button>
+                    </div>
+                  </nav>
+                )}
+                {visibleRows.map((r) => (
                   <Card key={r.id} className="setcard">
                     <div className="sectionhead">
                       <h3>
-                        {r.name} · Set {i + 1}
+                        {r.name} · Set {selectedIndex + 1}
                       </h3>
                       <button
                         type="button"
                         className="subtle"
                         onClick={() => {
-                          if (confirm("Remove this set?"))
+                          if (confirm("Remove this set?")) {
+                            const adjacent =
+                              group.rows[selectedIndex - 1] ??
+                              group.rows[selectedIndex + 1];
+                            if (adjacent) selectSet(group.key, adjacent.id);
                             update({
                               rows: w.rows.filter((x) => x.id !== r.id),
                             });
+                          }
                         }}
                       >
                         Remove
@@ -416,7 +481,10 @@ export default function WorkoutLog({
                               name: e.target.value,
                               exerciseId: e.target.value,
                               velocity: r.velocity
-                                ? { ...r.velocity, exerciseId: e.target.value }
+                                ? {
+                                    ...r.velocity,
+                                    exerciseId: e.target.value,
+                                  }
                                 : null,
                             })
                           }
@@ -443,9 +511,10 @@ export default function WorkoutLog({
                           type="checkbox"
                           aria-label="Completed set"
                           checked={r.confirmed}
-                          onChange={(e) =>
-                            updateRow(r.id, { confirmed: e.target.checked })
-                          }
+                          onChange={(e) => {
+                            selectSet(group.key, r.id);
+                            updateRow(r.id, { confirmed: e.target.checked });
+                          }}
                         />
                         Completed set
                       </label>
