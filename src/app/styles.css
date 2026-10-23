@@ -932,3 +932,48 @@ button:active:not(:disabled) {
   display: block;
   color: #b7c2df;
 }
+
+.set-navigation {
+  margin: 16px 12px 0;
+  min-width: 0;
+}
+.set-buttons {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+}
+.set-buttons button {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+.set-buttons button[aria-pressed="true"] {
+  background: #21483f;
+  border-color: #6ee7b7;
+  color: #d7fff0;
+}
+.set-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+.set-pager button {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.set-pager > span {
+  text-align: center;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.set-pager small {
+  display: block;
+  color: #a8bbca;
+  margin-top: 3px;
+}
+.set-pager button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
