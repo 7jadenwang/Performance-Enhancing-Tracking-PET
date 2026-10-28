@@ -21,6 +21,7 @@ export default function TimeSeries({
   minimumSpan = 1,
   yRange,
   caption,
+  seriesStyles = {},
 }: {
   title: string;
   unit: string;
@@ -32,6 +33,7 @@ export default function TimeSeries({
   minimumSpan?: number;
   yRange?: [number, number];
   caption?: string;
+  seriesStyles?: Record<string, { color: string; dash?: string }>;
 }) {
   const points = aggregatePoints(rawPoints, period, aggregation);
   const [hover, setHover] = useState<ChartPoint | null>(null),
@@ -77,9 +79,10 @@ export default function TimeSeries({
     b.label.localeCompare(a.label, undefined, { numeric: true }),
   );
   const color = (name: string) =>
-    warning
+    seriesStyles[name]?.color ??
+    (warning
       ? ["#ff7d8e", "#f6bd60", "#b8a1ff", "#70a9ff"][series.indexOf(name) % 4]
-      : ["#6ee7b7", "#70a9ff", "#f6bd60", "#dc9eef"][series.indexOf(name) % 4];
+      : ["#6ee7b7", "#70a9ff", "#f6bd60", "#dc9eef"][series.indexOf(name) % 4]);
   return (
     <section className="card chart">
       <div className="sectionhead">
@@ -89,7 +92,19 @@ export default function TimeSeries({
       <div className="legend">
         {series.map((s) => (
           <span key={s}>
-            <i style={{ background: color(s) }} />
+            <i
+              style={
+                seriesStyles[s]?.dash
+                  ? {
+                      background: "transparent",
+                      borderTop: `2px dashed ${color(s)}`,
+                      width: 16,
+                      height: 0,
+                      borderRadius: 0,
+                    }
+                  : { background: color(s) }
+              }
+            />
             {s}
           </span>
         ))}
@@ -180,9 +195,10 @@ export default function TimeSeries({
                 stroke={color(s)}
                 strokeWidth="2.5"
                 strokeDasharray={
-                  s === "Actual" || (warning && series.indexOf(s) % 2 === 1)
+                  seriesStyles[s]?.dash ??
+                  (s === "Actual" || (warning && series.indexOf(s) % 2 === 1)
                     ? "5 3"
-                    : undefined
+                    : undefined)
                 }
               />
               {seg.map((p, j) => (
@@ -270,7 +286,7 @@ export default function TimeSeries({
           : valid.length
             ? (caption ??
               "Ranges retain their bounds. Missing values create gaps. Tap the plot or focus a point for exact values.")
-            : "No measured values in this range."}
+            : (caption ?? "No measured values in this range.")}
       </p>
       <p className="hint">
         Tap the plot to select a date/week and see its values. Use Enter or
