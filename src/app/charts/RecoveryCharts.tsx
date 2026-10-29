@@ -6,7 +6,8 @@ import { ratingOnTen } from "../../metrics/recovery-ratings";
 import type { Period } from "../../metrics/periods";
 import type { AthleteState } from "../../domain/schema";
 import { buildTimeline, rollingLoad } from "../../metrics/timeline";
-import { dailyCmj, baselineForDate } from "../../metrics/recovery";
+import { cmjComparisonForDate } from "../../metrics/cmj-progress";
+import { dailyCmj } from "../../metrics/recovery";
 import { velocityHistory, compatibleVelocity } from "../../metrics/velocity";
 import TimeSeries, { type ChartPoint } from "./TimeSeries";
 export default function RecoveryCharts({
@@ -42,22 +43,33 @@ export default function RecoveryCharts({
       };
     }),
   );
-  const deviations: ChartPoint[] = protocols.flatMap((protocol) =>
+  const references: ChartPoint[] = protocols.flatMap((protocol) =>
     timeline.map((p) => {
-      const m = p.mornings.find((m) => m.protocolId === protocol);
-      const b = baselineForDate(state, protocol, p.date);
+      const comparison = cmjComparisonForDate(state, protocol, p.date);
       return {
         label: p.date,
-        value:
-          m && b && dailyCmj(m).validTrials === 3 && b.meanCm > 0
-            ? (100 * (dailyCmj(m).meanCm! - b.meanCm)) / b.meanCm
-            : null,
-        series:
-          state.protocols.find((x) => x.id === protocol)?.name ?? protocol,
-        segment: protocol + "|" + (b?.id ?? "none"),
-        note: b ? "Baseline " + b.id.slice(0, 6) : "No matching baseline",
+        value: comparison.referenceCm,
+        series: `${state.protocols.find((x) => x.id === protocol)?.name ?? protocol} · reference`,
+        segment: protocol + "|" + comparison.segment,
+        note: comparison.note,
       };
     }),
+  );
+  const deviations: ChartPoint[] = protocols.flatMap((protocol) =>
+    timeline.map((p) => {
+      const comparison = cmjComparisonForDate(state, protocol, p.date);
+      return {
+        label: p.date,
+        value: comparison.percentageChange,
+        series:
+          state.protocols.find((x) => x.id === protocol)?.name ?? protocol,
+        segment: protocol + "|" + comparison.segment,
+        note: comparison.note,
+      };
+    }),
+  );
+  const referenceStyles = Object.fromEntries(
+    references.map((p) => [p.series, { color: "#ff7d8e", dash: "6 4" }]),
   );
   const ratings = (key: "sleepQuality" | "fatigue" | "soreness" | "stress") =>
     timeline.map((p) => ({
@@ -141,9 +153,11 @@ export default function RecoveryCharts({
           yAxis="data"
           minimumSpan={1}
           unit="cm"
+          seriesStyles={referenceStyles}
+          caption="CMJ height and the red dashed reference are both in cm. Reference uses your calibrated baseline when available; otherwise it is a provisional mean of up to 14 earlier suitable recorded days for the same protocol, using available valid trials. This does not establish a calibrated baseline."
           points={
             cmj.length
-              ? cmj
+              ? [...cmj, ...references]
               : timeline.map((p) => ({
                   label: p.date,
                   value: null,
@@ -153,9 +167,10 @@ export default function RecoveryCharts({
         />
         <TimeSeries
           period={period}
-          title="CMJ baseline deviation"
+          title="CMJ deviation from reference"
           unit="%"
           points={deviations}
+          caption="Percentage change = 100 × (daily mean CMJ − reference) ÷ reference. Positive means above reference; negative means below. Without an active calibrated baseline, Progress uses a labelled provisional reference from earlier suitable records. No comparison is possible on the first day of a protocol or without a CMJ measurement; tap the chart for the reason. Calibration in Settings still requires 14 eligible days with three valid trials each."
           warning
         />
         <TimeSeries
@@ -277,9 +292,11 @@ export default function RecoveryCharts({
           ))}
         <p>
           Load trends are descriptive exposure estimates. CMJ deviation is
-          performance change; perceived fatigue is your own check-in. Earlier
-          1–5 ratings are displayed ×2 on the 10-point scale; saved values
-          remain unchanged.
+          percentage performance change. The red dashed CMJ reference is in cm;
+          provisional references use earlier daily means and do not change saved
+          calibration or readiness signals. Perceived fatigue is your own
+          check-in. Earlier 1–5 ratings are displayed ×2 on the 10-point scale;
+          saved values remain unchanged.
         </p>
       </div>
     </>
