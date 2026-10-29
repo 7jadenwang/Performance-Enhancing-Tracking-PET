@@ -218,3 +218,73 @@ test("shows missing-input reasons rather than zero for a recorded training day",
     await expect(row).toContainText("Whole-session RPE is missing");
   }
 });
+
+test("shows CMJ percentage deviation and a red dashed reference in cm without manual calibration", async ({
+  page,
+}) => {
+  const { initialState } = await import("../../src/domain/schema");
+  const { makeMorning } = await import("../../src/domain/fixtures");
+  const state = initialState();
+  state.startDate = "2026-10-12";
+  state.mornings = [30, 33, 27].map((heightCm, i) =>
+    makeMorning({
+      id: `cmj-${i}`,
+      localDate: `2026-10-${12 + i}`,
+      trials: [{ heightCm, excluded: false, reason: "" }],
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Import backup").setInputFiles({
+    name: "cmj.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(state)),
+  });
+  await expect(
+    page.getByText("Compatible backup:", { exact: false }),
+  ).toBeVisible();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Confirm replacement" }).click();
+  await page.getByRole("button", { name: "Progress", exact: true }).click();
+  const cmj = page.locator("section.chart").filter({
+    has: page.getByRole("heading", { name: "CMJ height", exact: true }),
+  });
+  const deviation = page.locator("section.chart").filter({
+    has: page.getByRole("heading", {
+      name: "CMJ deviation from reference",
+      exact: true,
+    }),
+  });
+  await expect(
+    cmj.locator('polyline[stroke="#ff7d8e"]').first(),
+  ).toHaveAttribute("stroke-dasharray", "6 4");
+  await cmj
+    .getByRole("button", { name: /^2026-10-13,/ })
+    .first()
+    .click();
+  await expect(cmj.getByRole("status")).toContainText("33.00 cm");
+  await expect(cmj.getByRole("status")).toContainText("30.00 cm");
+  await expect(cmj.getByRole("status")).toContainText(
+    "Provisional reference (not calibrated)",
+  );
+  await deviation
+    .getByRole("button", {
+      name: "CMJ deviation from reference data",
+      exact: true,
+    })
+    .click();
+  const rows = deviation.locator("tbody tr");
+  await expect(
+    rows.filter({ hasText: "2026-10-13" }).locator("td").nth(2),
+  ).toHaveText("10.00");
+  await expect(
+    rows.filter({ hasText: "2026-10-14" }).locator("td").nth(2),
+  ).toHaveText("-14.29");
+  await expect(rows.filter({ hasText: "2026-10-12" })).toContainText(
+    "No earlier suitable CMJ reference",
+  );
+  await expect(deviation.locator(".chart-caption")).toContainText(
+    "Percentage change",
+  );
+  await cmj.screenshot({ path: "/tmp/pet-cmj-reference.png" });
+});
