@@ -29,6 +29,7 @@ export const rowSchema = z.object({
   exerciseId: z.string(),
   name: z.string(),
   confirmed: z.boolean(),
+  completedAt: z.string().datetime().nullable().optional(),
   prescriptionId: z.string().nullable().default(null),
   movementId: z.string().nullable().default(null),
   reps: nullable,
