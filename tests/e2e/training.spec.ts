@@ -436,3 +436,51 @@ test("flips one set at a time, edits previous sets, and preserves values on relo
     ),
   ).toBe(true);
 });
+
+test("records the latest completed-set edit time and preserves it across navigation and reload", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-10-30T12:00:00Z"));
+  await page.getByRole("button", { name: "Program", exact: true }).click();
+  await page
+    .getByRole("button", { name: "LP · Phase 1 · W1 D1 · Monday", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Log this session" }).click();
+  const group = page.locator(".movement-group").first();
+  await group.getByLabel("Completed set").check();
+  await expect(group.locator("time")).toHaveAttribute(
+    "datetime",
+    "2026-10-30T12:00:00.000Z",
+  );
+  await page.clock.setFixedTime(new Date("2026-10-30T12:05:00Z"));
+  await group
+    .getByLabel("Set notes", { exact: true })
+    .fill("Corrected completed set");
+  await expect(group.locator("time")).toHaveAttribute(
+    "datetime",
+    "2026-10-30T12:05:00.000Z",
+  );
+  await page.reload();
+  await expect(group.locator("time")).toHaveAttribute(
+    "datetime",
+    "2026-10-30T12:05:00.000Z",
+  );
+  await group.getByRole("button", { name: /Add next set/ }).click();
+  await expect(group.getByLabel("Completed set")).not.toBeChecked();
+  await expect(group.locator("time")).toHaveCount(0);
+  await group
+    .getByRole("button", { name: "Previous set", exact: true })
+    .click();
+  await expect(group.locator("time")).toHaveAttribute(
+    "datetime",
+    "2026-10-30T12:05:00.000Z",
+  );
+  await group.getByLabel("Completed set").uncheck();
+  await expect(group.locator("time")).toHaveCount(0);
+  await page.clock.setFixedTime(new Date("2026-10-30T12:10:00Z"));
+  await group.getByLabel("Completed set").check();
+  await expect(group.locator("time")).toHaveAttribute(
+    "datetime",
+    "2026-10-30T12:10:00.000Z",
+  );
+});

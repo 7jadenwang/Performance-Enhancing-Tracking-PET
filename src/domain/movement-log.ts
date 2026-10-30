@@ -37,11 +37,24 @@ export function startMovements(
       .map(prescribedSet),
   ];
 }
+// The latest edit made while completed; legacy rows remain undated until edited.
+export function editSet(
+  row: ActualRow,
+  changes: Partial<ActualRow>,
+  at = new Date().toISOString(),
+): ActualRow {
+  const next = { ...row, ...changes };
+  if (next.confirmed) next.completedAt = at;
+  else if (row.completedAt !== undefined || changes.confirmed === false)
+    next.completedAt = null;
+  return next;
+}
 export function nextSet(first: ActualRow): ActualRow {
   return {
     ...first,
     id: crypto.randomUUID(),
     confirmed: false,
+    completedAt: null,
     setRpe: null,
     rir: null,
     timeSeconds: null,

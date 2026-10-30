@@ -6,6 +6,7 @@ import {
   prescribedSet,
   startMovements,
   nextSet,
+  editSet,
 } from "../domain/movement-log";
 import type {
   AthleteState,
@@ -98,7 +99,7 @@ export default function WorkoutLog({
       ...current,
       rows: current.rows.map((r) => {
         if (r.id !== id) return r;
-        const next = { ...r, ...v };
+        const next = editSet(r, v);
         if (next.velocity)
           next.velocity = {
             ...next.velocity,
@@ -333,7 +334,9 @@ export default function WorkoutLog({
             One set to start each movement. Add the next set when ready; it
             copies inputs from your first completed set. Use the set buttons or
             Previous/Next to edit one set at a time. Confirm sets and choose
-            partial/completed status to count them.
+            partial/completed status to count them. Completion time tracks the
+            latest edit while a set is marked completed, shown in your local
+            time.
           </p>
           <p role="status" className="autosave-status">
             {message || "Edits save automatically on this device"}
@@ -479,6 +482,34 @@ export default function WorkoutLog({
                         Remove
                       </button>
                     </div>
+                    {r.confirmed && (
+                      <p className="hint">
+                        {r.completedAt ? (
+                          <>
+                            Completed · latest update:{" "}
+                            <time
+                              dateTime={r.completedAt}
+                              title={r.completedAt}
+                            >
+                              {new Date(r.completedAt).toLocaleString(
+                                undefined,
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  second: "2-digit",
+                                  timeZoneName: "short",
+                                },
+                              )}
+                            </time>
+                          </>
+                        ) : (
+                          "Completion time not recorded for this older set."
+                        )}
+                      </p>
+                    )}
                     <div className="threecols">
                       <label className="field">
                         Exercise name
