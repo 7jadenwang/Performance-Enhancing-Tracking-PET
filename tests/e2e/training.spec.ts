@@ -1,4 +1,115 @@
 import { test, expect } from "@playwright/test";
+test("continues autosaving completed and copied sets without a false incoming conflict", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Program", exact: true }).click();
+  await page
+    .getByRole("button", { name: "LP · Phase 1 · W1 D1 · Monday", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Log this session" }).click();
+  const group = page.locator(".movement-group").first();
+  await group.getByLabel("Completed set").check();
+  await expect(page.locator(".autosave-status")).toHaveText(
+    "Saved on this device",
+  );
+  await group.getByRole("button", { name: /Add next set/ }).click();
+  await group.getByLabel("External load (kg)").fill("82.5");
+  await expect(page.locator(".autosave-status")).toHaveText(
+    "Saved on this device",
+  );
+  await expect(
+    page.getByText(
+      "This workout changed on another device. Your draft is retained.",
+    ),
+  ).toHaveCount(0);
+  await page.getByLabel("Session status").selectOption("partial");
+  await page.getByRole("button", { name: "Save workout" }).click();
+  await expect(page.locator(".autosave-status")).toHaveText(
+    "Saved on this device",
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        Object.keys(localStorage).filter((key) =>
+          key.startsWith("pet-workout-draft-v1:"),
+        ).length,
+    ),
+  ).toBe(0);
+  await page.reload();
+  await expect(page.getByLabel("Session status")).toHaveValue("partial");
+  await expect(group.getByLabel("External load (kg)")).toHaveValue("82.5");
+  await expect(
+    page.getByText(
+      "This workout changed on another device. Your draft is retained.",
+    ),
+  ).toHaveCount(0);
+});
+test("retains review protection when incoming workout content really differs", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Program", exact: true }).click();
+  await page
+    .getByRole("button", { name: "LP · Phase 1 · W1 D1 · Monday", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Log this session" }).click();
+  await page
+    .getByRole("textbox", { name: "Session notes", exact: true })
+    .fill("saved original");
+  await expect(page.locator(".autosave-status")).toHaveText(
+    "Saved on this device",
+  );
+  await page
+    .getByRole("textbox", { name: "Session notes", exact: true })
+    .fill("local unfinished entry");
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const req = indexedDB.open("pet-training-companion");
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction("state", "readwrite");
+          const table = tx.objectStore("state");
+          const read = table.get("athlete");
+          read.onsuccess = () => {
+            const stored = read.result;
+            stored.value.workouts[0].notes = "incoming device entry";
+            table.put(stored);
+          };
+          tx.oncomplete = () => {
+            db.close();
+            window.dispatchEvent(new Event("pet-storage-changed"));
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+  );
+  await expect(
+    page.getByText(
+      "This workout changed on another device. Your draft is retained.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Session notes", exact: true }),
+  ).toHaveValue("local unfinished entry");
+  await expect(
+    page.getByRole("button", { name: "Save workout" }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Keep workout draft after reviewing" })
+    .click();
+  await page.getByRole("button", { name: "Save workout" }).click();
+  await expect(page.locator(".autosave-status")).toHaveText(
+    "Saved on this device",
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("textbox", { name: "Session notes", exact: true }),
+  ).toHaveValue("local unfinished entry");
+});
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Program", exact: true }).click();

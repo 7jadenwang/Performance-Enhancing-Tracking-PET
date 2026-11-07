@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Workout } from "../domain/schema";
+import { workoutSchema, type Workout } from "../domain/schema";
 import { storageNamespace } from "../storage/db";
 import {
   readDraft,
@@ -28,7 +28,19 @@ export function useWorkoutDraft(
   const [initial] = useState(() => {
     try {
       const draft = readDraft(localStorage, draftId);
-      if (draft) return { ...draft, restored: true, error: "" };
+      if (draft) {
+        // Refresh can interrupt draft cleanup after the durable save succeeds.
+        // Identical content with a newer save time needs no conflict review.
+        if (
+          existing &&
+          JSON.stringify({
+            ...existing,
+            updatedAt: draft.workout.updatedAt,
+          }) === JSON.stringify(draft.workout)
+        )
+          draft.base = JSON.stringify(existing);
+        return { ...draft, restored: true, error: "" };
+      }
     } catch {
       return {
         workout: existing ?? create(),
@@ -109,11 +121,17 @@ export function useWorkoutDraft(
       return;
     busy.current = true;
     const snapshot = latest.current,
-      previous = base.current,
-      next = { ...snapshot, updatedAt: new Date().toISOString() };
-    inFlight.current = JSON.stringify(next);
+      previous = base.current;
+    let next = snapshot;
     let ok = false;
     try {
+      // Storage parses records into schema order. Track that same representation
+      // so our own save cannot look like an incoming edit after adding a field.
+      next = workoutSchema.parse({
+        ...snapshot,
+        updatedAt: new Date().toISOString(),
+      });
+      inFlight.current = JSON.stringify(next);
       ok = await saveCallback.current(next, previous);
     } catch {
       ok = false;

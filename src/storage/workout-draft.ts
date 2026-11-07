@@ -10,7 +10,10 @@ export function readDraft(
   const parsed = JSON.parse(raw);
   const workout = workoutSchema.parse(parsed.workout);
   if (typeof parsed.base !== "string") throw Error("Invalid draft baseline");
-  return { workout, base: parsed.base };
+  const base = JSON.stringify(
+    workoutSchema.nullable().parse(JSON.parse(parsed.base)),
+  );
+  return { workout, base };
 }
 export function writeDraft(
   storage: DraftStorage,
@@ -26,7 +29,11 @@ export function clearDraft(
   workout: Workout,
 ) {
   const current = readDraft(storage, id);
-  if (current && JSON.stringify(current.workout) === JSON.stringify(workout))
+  if (
+    current &&
+    JSON.stringify(current.workout) ===
+      JSON.stringify(workoutSchema.parse(workout))
+  )
     storage.removeItem(key(id));
 }
 
@@ -42,7 +49,8 @@ export function advanceDraftBase(
   if (
     !current ||
     current.base !== previous ||
-    JSON.stringify(current.workout) !== JSON.stringify(workout)
+    JSON.stringify(current.workout) !==
+      JSON.stringify(workoutSchema.parse(workout))
   )
     return false;
   writeDraft(storage, id, current.workout, next);
