@@ -288,3 +288,75 @@ test("shows CMJ percentage deviation and a red dashed reference in cm without ma
   );
   await cmj.screenshot({ path: "/tmp/pet-cmj-reference.png" });
 });
+
+test("connects recorded mornings across a missing day without inventing measurements", async ({
+  page,
+}) => {
+  const { initialState } = await import("../../src/domain/schema");
+  const { makeMorning } = await import("../../src/domain/fixtures");
+  const state = initialState();
+  state.startDate = "2026-10-12";
+  state.mornings = [12, 13, 15].map((day, i) =>
+    makeMorning({
+      id: `morning-gap-${day}`,
+      localDate: `2026-10-${day}`,
+      trials: [{ heightCm: 30 + i, excluded: false, reason: "" }],
+      sleepHours: 7 + i / 2,
+      sleepQuality: 3,
+      fatigue: 2,
+      soreness: 2,
+      stress: 3,
+      bodyMassKg: 75 + i,
+      restingHeartRate: 60 + i,
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByLabel("Import backup").setInputFiles({
+    name: "morning-gap.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(state)),
+  });
+  await expect(
+    page.getByText("Compatible backup:", { exact: false }),
+  ).toBeVisible();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Confirm replacement" }).click();
+  await page.getByRole("button", { name: "Progress", exact: true }).click();
+
+  for (const title of [
+    "CMJ height",
+    "Sleep duration",
+    "Sleep quality",
+    "Perceived fatigue",
+    "Soreness and stress",
+    "Body mass",
+    "Resting heart rate",
+    "CMJ deviation from reference",
+  ]) {
+    const chart = page.locator("section.chart").filter({
+      has: page.getByRole("heading", { name: title, exact: true }),
+    });
+    const lines = title === "CMJ height"
+      ? chart.locator('polyline[stroke="#6ee7b7"]')
+      : chart.locator("polyline");
+    await expect(lines).toHaveCount(title === "Soreness and stress" ? 2 : 1);
+    const expectedPoints = title === "CMJ deviation from reference" ? 2 : 3;
+    for (const line of await lines.all()) {
+      const pairs = (await line.getAttribute("points"))!.trim().split(/\s+/);
+      expect(pairs).toHaveLength(expectedPoints);
+      if (expectedPoints === 3) {
+        const xs = pairs.map((p) => Number(p.split(",")[0]));
+        expect(xs[2] - xs[1]).toBeCloseTo(2 * (xs[1] - xs[0]));
+      }
+    }
+    await chart.getByRole("button", { name: `${title} data`, exact: true }).click();
+    const missingRows = chart.locator("tbody tr").filter({ hasText: "2026-10-14" });
+    expect(await missingRows.count()).toBeGreaterThan(0);
+    for (const row of await missingRows.all()) {
+      // The descriptive reference is allowed on days without a new CMJ measurement.
+      if (!(await row.locator("td").nth(1).textContent())!.endsWith(" · reference"))
+        await expect(row.locator("td").nth(2)).toHaveText("Unknown");
+    }
+  }
+});

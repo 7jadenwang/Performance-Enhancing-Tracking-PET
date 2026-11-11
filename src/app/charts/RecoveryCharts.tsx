@@ -150,11 +150,12 @@ export default function RecoveryCharts({
         <TimeSeries
           period={period}
           title="CMJ height"
+          connectMissing
           yAxis="data"
           minimumSpan={1}
           unit="cm"
           seriesStyles={referenceStyles}
-          caption="CMJ height and the red dashed reference are both in cm. Reference uses your calibrated baseline when available; otherwise it is a provisional mean of up to 14 earlier suitable recorded days for the same protocol, using available valid trials. This does not establish a calibrated baseline."
+          caption="CMJ height and the red dashed reference are both in cm. Reference uses your calibrated baseline when available; otherwise it is a provisional mean of up to 14 earlier suitable recorded days for the same protocol, using available valid trials. This does not establish a calibrated baseline. Lines connect recorded mornings across missing measurements; no missing values are filled in."
           points={
             cmj.length
               ? [...cmj, ...references]
@@ -168,20 +169,23 @@ export default function RecoveryCharts({
         <TimeSeries
           period={period}
           title="CMJ deviation from reference"
+          connectMissing
           unit="%"
           points={deviations}
-          caption="Percentage change = 100 × (daily mean CMJ − reference) ÷ reference. Positive means above reference; negative means below. Without an active calibrated baseline, Progress uses a labelled provisional reference from earlier suitable records. No comparison is possible on the first day of a protocol or without a CMJ measurement; tap the chart for the reason. Calibration in Settings still requires 14 eligible days with three valid trials each."
+          caption="Percentage change = 100 × (daily mean CMJ − reference) ÷ reference. Positive means above reference; negative means below. Without an active calibrated baseline, Progress uses a labelled provisional reference from earlier suitable records. No comparison is possible on the first day of a protocol or without a CMJ measurement; tap the chart for the reason. Calibration in Settings still requires 14 eligible days with three valid trials each. Lines connect recorded mornings across missing measurements; missing values remain unknown."
           warning
         />
         <TimeSeries
           period={period}
           title="Sleep duration"
+          connectMissing
           unit="hours"
           points={sleep}
         />
         <TimeSeries
           period={period}
           title="Sleep quality"
+          connectMissing
           unit="1 poor – 10 good"
           yRange={[1, 10]}
           points={ratings("sleepQuality")}
@@ -189,6 +193,7 @@ export default function RecoveryCharts({
         <TimeSeries
           period={period}
           title="Perceived fatigue"
+          connectMissing
           unit="1 low – 10 high"
           yRange={[1, 10]}
           points={ratings("fatigue")}
@@ -197,6 +202,7 @@ export default function RecoveryCharts({
         <TimeSeries
           period={period}
           title="Soreness and stress"
+          connectMissing
           unit="1 low – 10 high"
           yRange={[1, 10]}
           points={[...ratings("soreness"), ...ratings("stress")]}
@@ -206,6 +212,7 @@ export default function RecoveryCharts({
           <TimeSeries
             period={period}
             title="Body mass"
+            connectMissing
             yAxis="data"
             minimumSpan={0.5}
             unit="kg"
@@ -216,6 +223,7 @@ export default function RecoveryCharts({
           <TimeSeries
             period={period}
             title="Resting heart rate"
+            connectMissing
             unit="bpm"
             points={bodily("restingHeartRate")}
           />
@@ -225,6 +233,7 @@ export default function RecoveryCharts({
             period={period}
             key={key}
             title={`HRV · ${key.split("|").slice(0, 3).join(" · ")}`}
+            connectMissing
             unit={key.split("|")[3]}
             points={timeline.map((p) => {
               const measurement = p.mornings.find(

@@ -22,6 +22,7 @@ export default function TimeSeries({
   yRange,
   caption,
   seriesStyles = {},
+  connectMissing = false,
 }: {
   title: string;
   unit: string;
@@ -34,6 +35,7 @@ export default function TimeSeries({
   yRange?: [number, number];
   caption?: string;
   seriesStyles?: Record<string, { color: string; dash?: string }>;
+  connectMissing?: boolean;
 }) {
   const points = aggregatePoints(rawPoints, period, aggregation);
   const [hover, setHover] = useState<ChartPoint | null>(null),
@@ -176,7 +178,7 @@ export default function TimeSeries({
           let current: ChartPoint[] = [];
           for (const p of points.filter((p) => p.series === s)) {
             if (
-              p.value === null ||
+              (p.value === null && !connectMissing) ||
               (current.length && p.segment !== current.at(-1)?.segment)
             ) {
               if (current.length) segments.push(current);
@@ -285,7 +287,9 @@ export default function TimeSeries({
           ? `${hover.label} · ${hover.series}: ${hover.low !== undefined && hover.high !== undefined ? `${hover.low.toFixed(2)}–${hover.high.toFixed(2)}` : hover.value?.toFixed(2)} ${unit}${hover.note ? " · " + hover.note : ""}`
           : valid.length
             ? (caption ??
-              "Ranges retain their bounds. Missing values create gaps. Tap the plot or focus a point for exact values.")
+              (connectMissing
+                ? "Lines connect recorded values across missing dates. Missing measurements remain unknown. Tap the plot or focus a point for exact values."
+                : "Ranges retain their bounds. Missing values create gaps. Tap the plot or focus a point for exact values."))
             : (caption ?? "No measured values in this range.")}
       </p>
       <p className="hint">
