@@ -7364,7 +7364,7 @@
   "August-W2D1": [
     {
       "name": "原图执行指导",
-      "sourceText": "原图执行指导\n本次无速度与自调节，以文字为准；Warmup文件另含完整能量系统训练，未叠加",
+      "sourceText": "原图执行指导\n本次无速度与自调节，以文字为准；能量系统训练安排在W2D2",
       "kind": "other",
       "sets": null,
       "reps": null,
@@ -10988,10 +10988,10 @@
       "loadKg": null
     }
   ],
-  "August-W2D1-energy": [
+  "August-W2D2": [
     {
       "name": "原图执行指导",
-      "sourceText": "原图执行指导\nWarmup文件其实为另一套完整能量系统训练；不是本日力量计划附加量。需确认归属后选择。短冲刺使用全程平均功率，峰值辅助；睡不足7–8h且伴异常症状取消高强度",
+      "sourceText": "原图执行指导\n原Warmup文件为W2D2完整能量系统训练。短冲刺使用全程平均功率，峰值辅助；睡不足7–8h且伴异常症状取消高强度",
       "kind": "other",
       "sets": null,
       "reps": null,

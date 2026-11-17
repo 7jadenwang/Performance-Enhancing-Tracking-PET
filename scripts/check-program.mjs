@@ -11,7 +11,7 @@ for (const path of p.sources) {
 }
 if (new Set(p.sources).size !== 119 || !m.entries.every((e) => e.review))
   throw Error("Incomplete inventory");
-if (p.sessions.length !== 94 || p.sessions.filter(s=>s.programId === "up").length !== 37) throw Error("Incorrect track inventory");
+if (p.sessions.length !== 95 || p.sessions.filter(s=>s.programId === "up").length !== 38) throw Error("Incorrect track inventory");
 console.log(
   `${p.sources.length} source images, ${p.sessions.length} sessions; source mappings complete. OCR ambiguities remain labelled.`,
 );
