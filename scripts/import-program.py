@@ -43,26 +43,23 @@ for folder,index in [('July',0),('August',1)]:
  grouped={}
  for f in sorted(pathlib.Path('public/program',folder).glob('*.jpg')):
   w,d=re.search(r'W(\d)D(\d)',f.name).groups()
-  key=f'{folder}-W{w}D{d}'
+  key='August-W2D2' if f.name=='Aug_W2D1_Warmup.jpg' else f'{folder}-W{w}D{d}'
   path=str(f).removeprefix('public/')
   grouped.setdefault(key,[]).append(path)
-  entries.append(dict(path=path,sessionId=key,role='alternative' if ('Supplement' in path or 'Warmup' in path) else 'continuation' if 'Continued' in path else 'session',review='visual review; structured summary; original authority retained'))
+  entries.append(dict(path=path,sessionId=key,role='alternative' if ('Supplement' in path) else 'continuation' if 'Continued' in path else 'session',review='visual review; structured summary; original authority retained'))
  for key,paths in grouped.items():
   if key not in up:raise ValueError('Missing reviewed UP entry '+key)
   w,d=map(int,re.search(r'W(\d)D(\d)',key).groups())
   ex=up[key]
   for n,prescription in enumerate(ex):prescription['id']=f'{key}-{n+1}'
-  s=dict(id=key,programId='up',phaseId=f'up-{index+1}',month=folder,blockIndex=index,week=w,day=d,optional=any('Optional' in p for p in paths),sourceText='\n\n'.join(p['sourceText'] for p in ex),sources=paths,exercises=ex,conditionalSources=[p for p in paths if 'Supplement' in p or 'Warmup' in p],alternativePlans=[])
+  s=dict(id=key,programId='up',phaseId=f'up-{index+1}',month=folder,blockIndex=index,week=w,day=d,optional=any('Optional' in p for p in paths),sourceText='\n\n'.join(p['sourceText'] for p in ex),sources=paths,exercises=ex,conditionalSources=[p for p in paths if 'Supplement' in p],alternativePlans=[])
   if key=='July-W3D2':
    alt=up['July-W3D2-treadmill']
    for n,prescription in enumerate(alt):prescription['id']=f'{key}-treadmill-{n+1}'
    s['alternativePlans']=[dict(id='treadmill',name='跑步机替代整套场地计划（不是附加训练）',sources=s['conditionalSources'],exercises=alt)]
   if key=='August-W2D1':
    s['autoregulation']='none'
-   s['sourceConflict']='Warmup文件含另一整套能量系统训练，非附加热身；请选择并确认归属。'
-   alt=up['August-W2D1-energy']
-   for n,prescription in enumerate(alt):prescription['id']=f'{key}-energy-{n+1}'
-   s['alternativePlans']=[dict(id='energy',name='能量系统文件（归属需确认，不叠加）',sources=s['conditionalSources'],exercises=alt)]
+  if key=='August-W2D2':s['autoregulation']='none'
   if key=='August-W1D3':s['sourceConflict']='文件D3但原图标题第一周第四天；暂按文件排序，需确认。'
   if key=='August-W1D4':s['sourceConflict']='文件D4但原图标题第一周第五天；暂按文件排序，需确认。'
   sessions.append(s)

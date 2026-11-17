@@ -2,9 +2,9 @@ import { it, expect } from 'vitest';
 import { program } from '../src/program/catalog';
 it('includes all source images and both supplied tracks without duplicate sessions', () => {
   expect(program.sources).toHaveLength(119);
-  expect(program.sessions).toHaveLength(94);
-  expect(new Set(program.sessions.map(s=>s.id)).size).toBe(94);
-  expect(program.sessions.filter(s=>s.programId === 'up')).toHaveLength(37);
+  expect(program.sessions).toHaveLength(95);
+  expect(new Set(program.sessions.map(s=>s.id)).size).toBe(95);
+  expect(program.sessions.filter(s=>s.programId === 'up')).toHaveLength(38);
 });
 it('uses purpose labels and preserves source identity and exceptions', () => {
   expect(program.definitions.map(p=>p.id)).toEqual(['lp','up']);
