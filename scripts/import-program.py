@@ -36,23 +36,34 @@ for key,sources in groups.items():
 
 # UP is a reviewed structured input, not raw OCR-derived prescriptions.
 up=json.loads(pathlib.Path('scripts/reviewed-up-prescriptions.json').read_text())
+up.update(json.loads(pathlib.Path('scripts/reviewed-up-final-prescriptions.json').read_text()))
 metadata=json.loads(pathlib.Path('scripts/reviewed-program-metadata.json').read_text())
+up_phases=next(track['phases'] for track in metadata if track['id']=='up')
+source_conflicts={
+ 'August-W1D3':'文件D3但原图标题第一周第四天；暂按文件排序，需确认。',
+ 'August-W1D4':'文件D4但原图标题第一周第五天；暂按文件排序，需确认。',
+ 'Oct-W3D1':'文件为第三周第一天，但原图标题为第二周第六天；按文件排序，需确认。',
+ 'Oct-W4D5':'文件为第四周第五天，但原图标题为第四周第四天；按文件排序，需确认。',
+}
 for session in sessions:
  session.update(programId='lp',phaseId='lp-'+str(session['blockIndex']+1))
-for folder,index in [('July',0),('August',1)]:
+for index,phase in enumerate(up_phases):
+ folder=phase['sourceFolder']
  grouped={}
  for f in sorted(pathlib.Path('public/program',folder).glob('*.jpg')):
   w,d=re.search(r'W(\d)D(\d)',f.name).groups()
   key='August-W2D2' if f.name=='Aug_W2D1_Warmup.jpg' else f'{folder}-W{w}D{d}'
   path=str(f).removeprefix('public/')
   grouped.setdefault(key,[]).append(path)
-  entries.append(dict(path=path,sessionId=key,role='alternative' if ('Supplement' in path) else 'continuation' if 'Continued' in path else 'session',review='visual review; structured summary; original authority retained'))
+  role='optional-add-on' if f.name=='Oct_W4D2_Optional.jpg' else 'alternative' if 'Supplement' in path else 'continuation' if 'Continued' in path else 'session'
+  entries.append(dict(path=path,sessionId=key,role=role,review='visual review; structured summary; original authority retained'))
  for key,paths in grouped.items():
   if key not in up:raise ValueError('Missing reviewed UP entry '+key)
   w,d=map(int,re.search(r'W(\d)D(\d)',key).groups())
   ex=up[key]
   for n,prescription in enumerate(ex):prescription['id']=f'{key}-{n+1}'
-  s=dict(id=key,programId='up',phaseId=f'up-{index+1}',month=folder,blockIndex=index,week=w,day=d,optional=any('Optional' in p for p in paths),sourceText='\n\n'.join(p['sourceText'] for p in ex),sources=paths,exercises=ex,conditionalSources=[p for p in paths if 'Supplement' in p],alternativePlans=[])
+  optional=all('Optional' in p for p in paths) or key=='Oct-W4D4'
+  s=dict(id=key,programId='up',phaseId=phase['id'],month=folder,blockIndex=index,week=w,day=d,optional=optional,sourceText='\n\n'.join(p['sourceText'] for p in ex),sources=paths,exercises=ex,conditionalSources=[p for p in paths if 'Supplement' in p],alternativePlans=[])
   if key=='July-W3D2':
    alt=up['July-W3D2-treadmill']
    for n,prescription in enumerate(alt):prescription['id']=f'{key}-treadmill-{n+1}'
@@ -60,15 +71,14 @@ for folder,index in [('July',0),('August',1)]:
   if key=='August-W2D1':
    s['autoregulation']='none'
   if key=='August-W2D2':s['autoregulation']='none'
-  if key=='August-W1D3':s['sourceConflict']='文件D3但原图标题第一周第四天；暂按文件排序，需确认。'
-  if key=='August-W1D4':s['sourceConflict']='文件D4但原图标题第一周第五天；暂按文件排序，需确认。'
+  if key in source_conflicts:s['sourceConflict']=source_conflicts[key]
   sessions.append(s)
 for definition in metadata:
  for phase in definition['phases']:
   phase['entrySessionIds']=[min((s for s in sessions if s['phaseId']==phase['id'] and s['week']==week),key=lambda s:s['day'])['id'] for week in range(1,5)]
   for session in sessions:
    if session['phaseId']==phase['id']:session['focus']=phase['weeklyFocus'][session['week']-1]
-p=dict(version='lp-up-v2',sourceCommit='27a9ac924647066eba52f782edbea4e269fe20b8',definitions=metadata,sources=[e['path'] for e in entries],sessions=sorted(sessions,key=lambda s:(s['programId'],s['blockIndex'],s['week'],s['day'])))
+p=dict(version='lp-up-v2',sourceCommit='7bb9878879071a58c36bdf0bc8dc6f1f7d43105f',definitions=metadata,sources=[e['path'] for e in entries],sessions=sorted(sessions,key=lambda s:(s['programId'],s['blockIndex'],s['week'],s['day'])))
 pathlib.Path('src/program/catalog.json').write_text(json.dumps(p,ensure_ascii=False,indent=2))
 pathlib.Path('src/program/source-manifest.json').write_text(json.dumps(dict(sourceCommit=p['sourceCommit'],entries=entries),ensure_ascii=False,indent=2))
 print(len(entries),'images;',len(sessions),'sessions;',sum(len(s['exercises']) for s in sessions),'reviewed prescription blocks')

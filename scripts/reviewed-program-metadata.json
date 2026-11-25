@@ -73,6 +73,32 @@
           "Capacity, velocity-regulated strength and acceleration",
           "Mixed conditioning and selected reduced-volume power"
         ]
+      },
+      {
+        "id": "up-3",
+        "number": 3,
+        "purpose": "Velocity-Guided Strength, Reactive Power & Performance Testing",
+        "sourceFolder": "Sept",
+        "entrySessionIds": [],
+        "weeklyFocus": [
+          "Velocity-guided heavy lifts, lateral power and sprint exposure",
+          "Ascending and descending squat loads, reactive jumps and speed",
+          "Multi-lift loading waves, energy systems and CMJ/lift testing",
+          "Loaded jump and weightlifting intensification, then jump and 1RM testing"
+        ]
+      },
+      {
+        "id": "up-4",
+        "number": 4,
+        "purpose": "Velocity Baselines, Aerobic Capacity & Sprint Performance",
+        "sourceFolder": "Oct",
+        "entrySessionIds": [],
+        "weeklyFocus": [
+          "Initial bar-speed baselines, heavy doubles and maximal sprinting",
+          "Fixed-load baseline comparisons, weightlifting complexes and speed endurance",
+          "Zone 2 and FTP testing with technical lifts and acceleration",
+          "Baseline-guided adjustment, reactive power and repeated sprint work"
+        ]
       }
     ]
   }

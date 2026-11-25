@@ -45,3 +45,13 @@ it('cancellation preserves history and optional sessions do not block completion
  expect(s.enrollments.find(r=>r.id===run.id)?.status).toBe('cancelled');
  expect(()=>transitionEnrollment(s,{type:'resume',id:run.id,date:'2026-10-18'},program)).toThrow();
 });
+it('extends active UP enrollments while keeping completed runs resolved',()=>{
+ const run=createEnrollment('up','July-W1D1','2026-07-06');
+ const earlierSessions=program.sessions.filter(s=>s.phaseId==='up-1'||s.phaseId==='up-2');
+ run.skippedSessionIds=earlierSessions.map(s=>s.id);
+ expect(enrollmentProgress(run,[],program).nextSessionId).toBe('Sept-W1D1');
+ expect(enrollmentProgress({...run,status:'completed'},[],program).requiredRemaining).toBe(0);
+ const dates=scheduledSessions(run,program);
+ expect(dates.find(p=>p.session.id==='Sept-W1D1')?.date).toBe('2026-08-31');
+ expect(dates.find(p=>p.session.id==='Oct-W1D1')?.date).toBe('2026-09-28');
+});

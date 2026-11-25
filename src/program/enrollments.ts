@@ -19,7 +19,7 @@ export function enrollmentProgress(e:Enrollment,workouts:Workout[],catalog:Progr
  own.slice().sort((a,b)=>a.updatedAt.localeCompare(b.updatedAt)||a.id.localeCompare(b.id)).forEach(w=>{if(w.sessionId)last.set(w.sessionId,w)});
  const scheduled=scheduledSessions(e,catalog),required=scheduled.filter(p=>!p.session.optional),resolved=new Set(e.skippedSessionIds);
  for(const [id,w]of last)if(w.status==='completed'||w.status==='skipped')resolved.add(id);
- const remaining=required.filter(p=>!resolved.has(p.session.id));
+ const remaining=e.status==='completed'?[]:required.filter(p=>!resolved.has(p.session.id));
  const end=e.status==='active'?undefined:e.events.filter(v=>['pause','cancel','complete'].includes(v.type)).at(-1)?.date;
  return {trainingDays:new Set(own.filter(performed).map(w=>w.localDate)).size,elapsedDays:Math.max(0,Math.round((Date.parse((end??localToday())+'T12:00:00Z')-Date.parse(e.startDate+'T12:00:00Z'))/86400000)+1),completed:[...last.values()].filter(w=>w.status==='completed').length,partial:[...last.values()].filter(w=>w.status==='partial').length,skipped:new Set([...e.skippedSessionIds,...[...last.values()].filter(w=>w.status==='skipped').map(w=>w.sessionId!)]).size,nextSessionId:remaining[0]?.session.id??null,requiredRemaining:remaining.length,resolvedSessionIds:[...resolved]};
 }

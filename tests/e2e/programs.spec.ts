@@ -52,6 +52,23 @@ test("shows complete prescribed load profiles before any actual training exists"
     page.getByText("No actual sessions logged", { exact: true }),
   ).toBeVisible();
 });
+test("opens both final UP phases and displays the optional October source", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Program", exact: true }).click();
+  await page.getByLabel("Browse program").selectOption("up");
+  await page.getByLabel("Training phase").selectOption("up-3");
+  await expect(page.getByRole("heading", { name: /Velocity-Guided Strength/ })).toBeVisible();
+  await page.getByRole("button", { name: /UP · Phase 3 · W4 D7 · Sunday/ }).click();
+  await expect(page.getByRole("heading", { name: /负重CMJ加测.*optional/ })).toBeVisible();
+  await page.getByLabel("Training phase").selectOption("up-4");
+  await expect(page.getByRole("heading", { name: /Velocity Baselines/ })).toBeVisible();
+  await page.getByRole("button", { name: /UP · Phase 4 · W4 D2 · Tuesday/ }).click();
+  await page.getByText("Original plan images (2)").click();
+  await expect(page.getByRole("img", { name: "Oct_W4D2_Optional.jpg" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /六角杠硬拉.*optional/ })).toBeVisible();
+});
 test("lets users configure equipment and movement familiarity", async ({
   page,
 }) => {
