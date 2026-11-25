@@ -20,7 +20,7 @@ npm run build
 npm run preview
 ```
 
-The app is a static client application with optional private Supabase authentication and sync. It works locally without cloud configuration. A deployed static host must use HTTPS; localhost also supports service workers. `npm run dev` is for development and does not generate the production service worker. Install from the browser's Add to Home Screen / Install app option where supported. All 119 original images are included in the first offline cache preparation; wait for **Offline ready** before disconnecting.
+The app is a static client application with optional private Supabase authentication and sync. It works locally without cloud configuration. A deployed static host must use HTTPS; localhost also supports service workers. `npm run dev` is for development and does not generate the production service worker. Install from the browser's Add to Home Screen / Install app option where supported. All 160 original images are included in the first offline cache preparation. Wait for **Offline ready** before disconnecting.
 
 ## Daily use
 
@@ -53,7 +53,7 @@ Research links and method descriptions are available in Settings and in the [des
 
 ## Program provenance
 
-119 source images, 94 sessions, 750 main prescription summaries. LP uses the previously reviewed sources; 37 UP sessions and 41 pages were reviewed from main revision `27a9ac924647066eba52f782edbea4e269fe20b8`. Reviewed summaries live in `scripts/reviewed-prescriptions.json` (LP) and `scripts/reviewed-up-prescriptions.json` (UP, including full source alternatives); regenerate bundled data with `python scripts/import-program.py`. Source mappings and review notes are in `src/program/source-manifest.json`.
+160 source images, 135 sessions, and 1,072 main prescription summaries. LP summaries live in `scripts/reviewed-prescriptions.json`. UP summaries live in `scripts/reviewed-up-prescriptions.json` and `scripts/reviewed-up-final-prescriptions.json`. Run `python scripts/import-program.py` to regenerate the bundled catalogue and source manifest.
 
 Summaries retain the principal prescriptions; original images retain detailed coaching instructions and are the authority. Complex wave/cluster/circuit structures and source contradictions remain explicitly flagged rather than guessed. Source MV notation and unclear 1RM references require confirmation. Each completed set can be logged separately even when the original block cannot be safely flattened.
 
@@ -72,7 +72,7 @@ Browser tests use installed system Chromium when available, otherwise Playwright
 
 ## LP and UP programs
 
-Choose Linear Periodization (12 supplied weeks) or Undulating Periodization (8 supplied weeks). Five purpose-labelled phases replace calendar month labels; original images remain available as provenance. D1 is Monday through D7 Sunday. Start dates anchor the chosen entry on/after your requested date; recorded actual dates never move when you reschedule. Queue/start, pause/resume, explicitly skip, cancel or begin another run without erasing history.
+Choose Linear Periodization (12 supplied weeks) or Undulating Periodization (16 supplied weeks). Program phases are named for their training purpose, with the original images available for reference. UP Phase 3 emphasizes velocity-guided strength, reactive power, and jump and lift testing. Phase 4 emphasizes bar-speed baselines and fixed-load comparisons alongside Zone 2 work, FTP testing, and sprint performance. D1 is Monday through D7 Sunday. Start dates anchor the chosen entry on/after your requested date. Rescheduling preserves recorded actual dates.
 
 Progress shows every prescribed source week before logging. Weight volume, repetitions, relative intensity, rest, cluster rest, compatible velocity, jump contacts/demand, sprint distance and conditioning work/recovery stay separate. Unknown data remains unknown. Select an enrollment to see accepted target revisions alongside actual confirmed work; original-source mode retains the supplied plan. Neither LP nor UP is forced into a mathematically ideal curve.
 

@@ -394,7 +394,7 @@ export function programDoseSeries(
   movementId?: string,
 ) {
   const sessions = catalog.sessions.filter((s) => s.programId === programId),
-    weeks = programId === "lp" ? 12 : 8;
+    weeks = Math.max(0, ...sessions.map((s) => s.blockIndex * 4 + s.week));
   const rest = confirmedRestDates(state),
     run = state.enrollments.find((e) => e.id === enrollmentId),
     schedule = run ? scheduledSessions(run, catalog) : [];

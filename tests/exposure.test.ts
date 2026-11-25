@@ -12,7 +12,11 @@ it("visualizes all source weeks before logging without inventing session RPE", (
   expect(weeks).toHaveLength(12);
   expect(weeks[0].planned.strengthReps![0]).toBeGreaterThan(0);
   expect(weeks[0].actual).toBeNull();
-  expect(programDoseSeries("up", initialState(), program)).toHaveLength(8);
+  const up = programDoseSeries("up", initialState(), program);
+  expect(up).toHaveLength(16);
+  expect(up[8].phaseId).toBe("up-3");
+  expect(up[15].phaseId).toBe("up-4");
+  expect(up[15].planned.conditioningWorkSeconds![0]).toBeGreaterThan(0);
 });
 it("retains weight sets rest cluster velocity and energy work as separate dose dimensions", () => {
   const cluster = program.sessions.find((s) => s.id === "July-W2D2")!

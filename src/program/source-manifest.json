@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "27a9ac924647066eba52f782edbea4e269fe20b8",
+  "sourceCommit": "7bb9878879071a58c36bdf0bc8dc6f1f7d43105f",
   "entries": [
     {
       "path": "program/April/April_W1D1.jpg",
@@ -712,6 +712,252 @@
     {
       "path": "program/August/Aug_W4D6.jpg",
       "sessionId": "August-W4D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W1D1.jpg",
+      "sessionId": "Sept-W1D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W1D2.jpg",
+      "sessionId": "Sept-W1D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W1D4.jpg",
+      "sessionId": "Sept-W1D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W1D5.jpg",
+      "sessionId": "Sept-W1D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W1D6.jpg",
+      "sessionId": "Sept-W1D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W2D1.jpg",
+      "sessionId": "Sept-W2D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W2D2.jpg",
+      "sessionId": "Sept-W2D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W2D3.jpg",
+      "sessionId": "Sept-W2D3",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W2D5.jpg",
+      "sessionId": "Sept-W2D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W2D6.jpg",
+      "sessionId": "Sept-W2D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W3D1.jpg",
+      "sessionId": "Sept-W3D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W3D2.jpg",
+      "sessionId": "Sept-W3D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W3D4.jpg",
+      "sessionId": "Sept-W3D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W3D5.jpg",
+      "sessionId": "Sept-W3D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W3D6.jpg",
+      "sessionId": "Sept-W3D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W4D2.jpg",
+      "sessionId": "Sept-W4D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W4D3.jpg",
+      "sessionId": "Sept-W4D3",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W4D4.jpg",
+      "sessionId": "Sept-W4D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Sept/Spet_W4D7.jpg",
+      "sessionId": "Sept-W4D7",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W1D1.jpg",
+      "sessionId": "Oct-W1D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W1D2.jpg",
+      "sessionId": "Oct-W1D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W1D4.jpg",
+      "sessionId": "Oct-W1D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W1D5.jpg",
+      "sessionId": "Oct-W1D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W1D6.jpg",
+      "sessionId": "Oct-W1D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W2D1.jpg",
+      "sessionId": "Oct-W2D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W2D2.jpg",
+      "sessionId": "Oct-W2D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W2D4.jpg",
+      "sessionId": "Oct-W2D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W2D5.jpg",
+      "sessionId": "Oct-W2D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W2D6.jpg",
+      "sessionId": "Oct-W2D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W3D1.jpg",
+      "sessionId": "Oct-W3D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W3D2.jpg",
+      "sessionId": "Oct-W3D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W3D4.jpg",
+      "sessionId": "Oct-W3D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W3D5.jpg",
+      "sessionId": "Oct-W3D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W3D6.jpg",
+      "sessionId": "Oct-W3D6",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D1.jpg",
+      "sessionId": "Oct-W4D1",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D2.jpg",
+      "sessionId": "Oct-W4D2",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D2_Optional.jpg",
+      "sessionId": "Oct-W4D2",
+      "role": "optional-add-on",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D3.jpg",
+      "sessionId": "Oct-W4D3",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D4.jpg",
+      "sessionId": "Oct-W4D4",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D5.jpg",
+      "sessionId": "Oct-W4D5",
+      "role": "session",
+      "review": "visual review; structured summary; original authority retained"
+    },
+    {
+      "path": "program/Oct/Oct_W4D6.jpg",
+      "sessionId": "Oct-W4D6",
       "role": "session",
       "review": "visual review; structured summary; original authority retained"
     }

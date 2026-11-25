@@ -73,7 +73,7 @@ export const sessionSchema = z.object({
   alternativePlans: z.array(z.object({id:z.string(), name:z.string(), sources:z.array(z.string()), exercises:z.array(prescriptionSchema)})).default([]),
   autoregulation: z.enum(["source", "none"]).default("source"),
   month: z.string(),
-  blockIndex: z.number().int().min(0).max(2),
+  blockIndex: z.number().int().nonnegative(),
   week: z.number().int().min(1).max(4),
   day: z.number().int().min(1).max(7),
   optional: z.boolean(),
